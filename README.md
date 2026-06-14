@@ -8,16 +8,8 @@ An automated, containerized ELT (Extract, Load, Transform) data pipeline that fe
 
 The system runs entirely inside Docker containers, structured as follows:
 
-```mermaid
-graph TD
-    A[Weatherstack API] -->|Python requests| B(Fetcher / Ingestion)
-    B -->|Insert raw data| C[(PostgreSQL: dev.raw_weather_data)]
-    D[Apache Airflow] -->|Orchestrates every 1 min| B
-    D -->|Triggers| E[dbt run]
-    E -->|Transforms raw data| C
-    C -->|Staging & Mart models| C
-    C -->|Exposes Cleaned Data| F[Metabase BI Dashboard]
-```
+![Architecture Diagram](archetiecture.svg)
+
 
 ### Service Breakdown & Port Mapping
 
