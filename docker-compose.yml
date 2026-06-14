@@ -1,0 +1,68 @@
+services:
+  db:
+    image: postgres:18
+    container_name: pg_container
+    ports:
+      - "5000:5432"
+    environment:
+      POSTGRES_USER: db_user
+      POSTGRES_PASSWORD: db_password
+      POSTGRES_DB: weather
+    volumes:
+      - ./postgres/data:/var/lib/postgresql
+      - ./postgres/airflow_init.sql:/docker-entrypoint-initdb.d/airflow_init.sql
+      - ./postgres/metabase_init.sql:/docker-entrypoint-initdb.d/metabase_init.sql
+    networks:
+      - pg_af_dbt_net
+  airflow:
+    container_name: airflow_container
+    image: apache/airflow:3.0.0
+    ports:
+      - "8000:8080"
+    environment:
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@db:5432/airflow_db
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./fetcher:/opt/airflow/fetcher
+      - /var/run/docker.sock:/var/run/docker.sock
+    group_add:
+      - "110"
+    command: bash -c "airflow db migrate && airflow standalone"
+    depends_on:
+      - db
+    networks:
+      - pg_af_dbt_net
+  dbt:
+    container_name: dbt_container
+    image: ghcr.io/dbt-labs/dbt-postgres:1.9.latest
+    volumes:
+      - ./dbt/my_project:/usr/app
+      - ./dbt:/root/.dbt
+    working_dir: /usr/app
+    environment:
+      DBT_PROFILES_DIR: "/root/.dbt"
+    depends_on:
+      - db
+    networks:
+      - pg_af_dbt_net
+    command: run
+  metabase:
+    image: metabase/metabase:latest
+    container_name: metabase_container
+    ports:
+      - "3000:3000"
+    environment:
+      MB_DB_TYPE: postgres
+      MB_DB_DBNAME: metabase
+      MB_DB_PORT: 5432
+      MB_DB_USER: db_user
+      MB_DB_PASS: db_password
+      MB_DB_HOST: db
+    depends_on:
+      - db
+    networks:
+      - pg_af_dbt_net
+
+networks:
+  pg_af_dbt_net:
+    driver: bridge

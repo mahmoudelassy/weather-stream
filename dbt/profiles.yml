@@ -1,0 +1,13 @@
+my_project:
+  target: dev
+
+  outputs:
+    dev:
+      type: postgres
+      host: db
+      user: db_user
+      password: db_password
+      port: 5432
+      dbname: weather
+      schema: dev
+      threads: 4
