@@ -8,7 +8,7 @@ An automated, containerized ELT (Extract, Load, Transform) data pipeline that fe
 
 The system runs entirely inside Docker containers, structured as follows:
 
-![Architecture Diagram](archetiecture.svg)
+![Architecture Diagram](arch.jpeg)
 
 
 ### Service Breakdown & Port Mapping
